@@ -17,7 +17,6 @@ const footerLinks = {
     { name: "Meet The Team", href: "/teachers" },
     { name: "Shop", href: "/shop" },
     { name: "Student Web App", href: "/app/login" },
-    { name: "Admin Dashboard", href: "/dashboard/login" },
   ],
 }
 
@@ -147,7 +146,15 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-[#264020]/60">
-              &copy; 2026 Srinatha Yoga School. All Rights Reserved.
+              &copy; 2026{" "}
+              <Link
+                href="/dashboard/login"
+                className="hover:text-[#264020] transition-colors"
+                title="Admin Dashboard"
+              >
+                Srinatha Yoga School
+              </Link>
+              . All Rights Reserved.
             </p>
             <div className="flex gap-6 text-sm text-[#264020]/60">
               <Link href="/privacy" className="hover:text-[#264020] transition-colors">
