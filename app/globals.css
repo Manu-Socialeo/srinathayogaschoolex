@@ -1,0 +1,379 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #1a1a1a;
+  --card: #FFFFFF;
+  --card-foreground: #1a1a1a;
+  --popover: #FFFFFF;
+  --popover-foreground: #1a1a1a;
+  --primary: #264020;
+  --primary-foreground: #FFFFFF;
+  --secondary: #FAF8F5;
+  --secondary-foreground: #264020;
+  --muted: #FAF8F5;
+  --muted-foreground: #6b7280;
+  --accent: #264020;
+  --accent-foreground: #FFFFFF;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: #E5E5E5;
+  --input: #E5E5E5;
+  --ring: #264020;
+  --radius: 1.5rem;
+  
+  /* Satvic color palette */
+  --satvic-green: #264020;
+  --satvic-green-light: #3a5a30;
+  --satvic-green-dark: #1a2d16;
+  --cream: #FAF8F5;
+  --cream-dark: #F5F0E8;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-mono: 'Geist Mono', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Satvic theme */
+  --color-satvic-green: var(--satvic-green);
+  --color-satvic-green-light: var(--satvic-green-light);
+  --color-satvic-green-dark: var(--satvic-green-dark);
+  --color-cream: var(--cream);
+  --color-cream-dark: var(--cream-dark);
+  
+  /* Web app color tokens */
+  --color-olive: var(--olive);
+  --color-teal: var(--teal);
+  --color-ivory: var(--ivory);
+  --color-sage: var(--sage);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--satvic-green);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--satvic-green-light);
+}
+
+/* Satvic card hover effect */
+.satvic-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.satvic-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(38, 64, 32, 0.15);
+}
+
+/* Smooth animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* Rounded elements globally */
+.rounded-card {
+  @apply rounded-xl;
+}
+
+.rounded-button {
+  @apply rounded-lg;
+}
+
+.rounded-section {
+  @apply rounded-2xl;
+}
+
+.rounded-image {
+  @apply rounded-xl;
+}
+
+/* Apply to buttons globally */
+button, .btn {
+  @apply rounded-lg;
+}
+
+/* Apply to cards and containers */
+div[class*="card"], section, article {
+  @apply rounded-xl;
+}
+
+/* Images */
+img {
+  @apply rounded-lg;
+}
+
+/* Input fields */
+input, textarea, select {
+  @apply rounded-lg;
+}
+
+/* All main containers and sections */
+main > section {
+  @apply rounded-2xl;
+}
+
+/* Course cards and product cards */
+main section div[class*="grid"] > div,
+.motion-div,
+.bg-white.rounded {
+  @apply rounded-xl;
+}
+
+/* Glassmorphism effects */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+  background: rgba(38, 64, 32, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 40px rgba(38, 64, 32, 0.15);
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 24px rgba(38, 64, 32, 0.2);
+}
+
+/* Web App Custom Tokens */
+:root {
+  --olive: #264020;
+  --teal: #4A9B8C;
+  --cream: #FAF8F5;
+  --ivory: #F5F2EC;
+  --sage: #6B7A6E;
+}
+
+/* Hide scrollbar for horizontal scroll sections */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area padding for mobile */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Touch improvements */
+@media (hover: none) {
+  .app-header button, .app-header a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Momentum scrolling for horizontal sections */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* Card interactive states for web app */
+.card-interactive {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-interactive:active {
+  transform: scale(0.98);
+}
+
+/* Progress bar shimmer animation */
+@keyframes progress-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.progress-animated {
+  background: linear-gradient(90deg, var(--accent) 25%, var(--teal) 50%, var(--accent) 75%);
+  background-size: 200% 100%;
+  animation: progress-shimmer 2s ease infinite;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease forwards;
+}
+
+/* Stagger children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in 0.3s ease forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--muted) 25%, var(--secondary) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease infinite;
+}
+
+/* Bookmark animation */
+@keyframes bookmark-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.bookmark-animate {
+  animation: bookmark-pop 0.3s ease;
+}
+
+/* iOS-style rubber band effect prevention */
+.no-overscroll {
+  overscroll-behavior: none;
+}
+
+/* Touch target sizing */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* App container max width for tablet/desktop */
+@media (min-width: 640px) {
+  .app-container {
+    max-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+    min-height: 100vh;
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft 0.5s ease-out forwards;
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.5s ease-out forwards;
+}
