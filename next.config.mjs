@@ -3,7 +3,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
-      { protocol: 'https', hostname: 'mdrvawvkeuuzzzuohawt.supabase.co' },
+      { protocol: 'https', hostname: 'drsavgkcmfsoooeymxtk.supabase.co' },
     ],
   },
   async headers() {
