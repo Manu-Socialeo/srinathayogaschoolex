@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Search, ShoppingCart, Star, Heart, X } from 'lucide-react'
+import { Search, ShoppingCart, Star, Heart, Check, X } from 'lucide-react'
 import { EmptySearchState, LoadingScreen } from '@/components/app/ui-states'
 import { fetchProducts } from '@/lib/supabase-queries'
+import { useCart } from '@/components/cart/cart-context'
 import type { Product } from '@/lib/app-data'
 import { cn, formatPrice } from '@/lib/utils'
 import Image from 'next/image'
@@ -23,6 +24,8 @@ export function StoreScreen() {
   const [wishlist, setWishlist] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
+  const [addedId, setAddedId] = useState<string | null>(null)
+  const { addItem } = useCart()
 
   useEffect(() => {
     fetchProducts()
@@ -152,10 +155,39 @@ export function StoreScreen() {
                         <span className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
                       )}
                     </div>
-                    <button className="w-full mt-3 py-2.5 bg-primary text-primary-foreground rounded-full text-xs font-medium flex items-center justify-center gap-1.5 touch-target transition-transform active:scale-98">
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      Add to Cart
-                    </button>
+                    {product.inStock ? (
+                      <button
+                        onClick={() => {
+                          addItem({
+                            id: product.id,
+                            type: 'product',
+                            title: product.title,
+                            price: product.price,
+                            image: product.image,
+                            quantity: 1,
+                          })
+                          setAddedId(product.id)
+                          setTimeout(() => setAddedId(null), 1500)
+                        }}
+                        className="w-full mt-3 py-2.5 bg-primary text-primary-foreground rounded-full text-xs font-medium flex items-center justify-center gap-1.5 touch-target transition-all active:scale-98"
+                      >
+                        {addedId === product.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            Added!
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            Add to Cart
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="w-full mt-3 py-2 text-center text-muted-foreground/60 bg-muted/30 rounded-full text-xs font-medium border border-border/40">
+                        Restocking Soon
+                      </div>
+                    )}
                   </div>
                 </div>
               )

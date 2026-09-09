@@ -21,6 +21,7 @@ interface ShopProduct {
   rating: number
   reviews: number
   description: string
+  inStock: boolean
 }
 
 const categoryLabels: Record<string, string> = {
@@ -51,6 +52,7 @@ export default function ShopPage() {
         rating: p.rating,
         reviews: p.reviews,
         description: p.description,
+        inStock: p.inStock,
       })))
       setIsLoading(false)
     }).catch(() => setIsLoading(false))
@@ -147,16 +149,22 @@ export default function ShopPage() {
 
                     <div className="flex items-center justify-between">
                       <span className="text-[#264020] font-bold text-lg">₹{product.price}</span>
-                      <Button
-                        onClick={() => {
-                          addItem({ id: product.id, type: 'product', title: product.name, price: product.price, image: product.image, quantity: 1 })
-                          setAddedId(product.id)
-                          setTimeout(() => setAddedId(null), 1500)
-                        }}
-                        className="bg-[#264020] hover:bg-[#3a5a30] text-white text-sm py-1.5 px-3"
-                      >
-                        {addedId === product.id ? 'Added!' : 'Add to Cart'}
-                      </Button>
+                      {product.inStock ? (
+                        <Button
+                          onClick={() => {
+                            addItem({ id: product.id, type: 'product', title: product.name, price: product.price, image: product.image, quantity: 1 })
+                            setAddedId(product.id)
+                            setTimeout(() => setAddedId(null), 1500)
+                          }}
+                          className="bg-[#264020] hover:bg-[#3a5a30] text-white text-sm py-1.5 px-3"
+                        >
+                          {addedId === product.id ? 'Added!' : 'Add to Cart'}
+                        </Button>
+                      ) : (
+                        <span className="text-xs font-medium text-[#264020]/50 bg-[#FAF8F5] px-3 py-1.5 rounded-md border border-[#E5E5E5]">
+                          Restocking Soon
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -19,7 +19,14 @@ import { Button } from '@/components/ui/button'
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '@/lib/supabase-queries'
 import type { Product as AppProduct } from '@/lib/app-data'
 
-const CATEGORIES = ['all', 'mats', 'props', 'apparel', 'accessories', 'books']
+const CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'books', label: 'Books' },
+  { id: 'apparel', label: 'Apparel' },
+  { id: 'sound-healing', label: 'Sound Healing' },
+  { id: 'mattress-cushions', label: 'Mattress & Cushions' },
+  { id: 'accessories', label: 'Accessories' },
+]
 
 const SAMPLE_IMAGES = [
   'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&h=600&fit=crop',
@@ -46,7 +53,7 @@ export default function AdminProductsPage() {
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
   const [originalPrice, setOriginalPrice] = useState('')
-  const [category, setCategory] = useState('props')
+  const [category, setCategory] = useState('books')
   const [image, setImage] = useState(SAMPLE_IMAGES[0])
   const [inStock, setInStock] = useState(true)
 
@@ -71,7 +78,7 @@ export default function AdminProductsPage() {
     setDescription('')
     setPrice('')
     setOriginalPrice('')
-    setCategory('props')
+    setCategory('books')
     setImage(SAMPLE_IMAGES[0])
     setInStock(true)
     setFormError('')
@@ -89,7 +96,7 @@ export default function AdminProductsPage() {
     setDescription(p.description)
     setPrice(p.price.toString())
     setOriginalPrice(p.originalPrice ? p.originalPrice.toString() : '')
-    setCategory(p.category || 'props')
+    setCategory(p.category || 'books')
     setImage(p.image || SAMPLE_IMAGES[0])
     setInStock(p.inStock)
     setFormError('')
@@ -119,6 +126,7 @@ export default function AdminProductsPage() {
           original_price: numOriginalPrice,
           image,
           in_stock: inStock,
+          category,
         })
         setProducts((prev) =>
           prev.map((p) =>
@@ -145,6 +153,7 @@ export default function AdminProductsPage() {
           original_price: numOriginalPrice,
           image,
           in_stock: inStock,
+          category,
         })
 
         const newId = res.data?.id || `prod_${Date.now()}`
@@ -243,15 +252,15 @@ export default function AdminProductsPage() {
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
           {CATEGORIES.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors whitespace-nowrap ${
-                selectedCategory === cat
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                selectedCategory === cat.id
                   ? 'bg-[#264020] text-white'
                   : 'bg-[#FAF8F5] text-[#264020]/70 hover:bg-[#264020]/10 hover:text-[#264020]'
               }`}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -440,13 +449,13 @@ export default function AdminProductsPage() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border border-[#E5E5E5] rounded-xl text-sm focus:outline-none focus:border-[#264020] text-[#264020] bg-white capitalize"
+                  className="w-full px-3.5 py-2.5 border border-[#E5E5E5] rounded-xl text-sm focus:outline-none focus:border-[#264020] text-[#264020] bg-white"
                 >
-                  <option value="mats">Yoga Mats & Rugs</option>
-                  <option value="props">Blocks, Straps & Props</option>
-                  <option value="apparel">Yoga Apparel</option>
-                  <option value="accessories">Accessories & Mala</option>
-                  <option value="books">Books & Philosophy</option>
+                  <option value="books">Books & Sacred Texts</option>
+                  <option value="apparel">Yoga Apparel & Clothing</option>
+                  <option value="sound-healing">Tibetan Singing Bowls & Sound Healing</option>
+                  <option value="mattress-cushions">Yoga Mats, Cushions & Bolsters</option>
+                  <option value="accessories">Sacred Malas, Straps & Accessories</option>
                 </select>
               </div>
 

@@ -91,21 +91,61 @@ export async function getProductsByCategory(slug: string): Promise<Product[]> {
   return data ?? []
 }
 
-export async function createProduct(product: Omit<Partial<Product>, 'id' | 'created_at'>) {
-  const { data, error } = await sb().from('products').insert(product as any).select().single()
+export async function createProduct(product: Omit<Partial<Product>, 'id' | 'created_at'> & { category?: string }) {
   clearCache()
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product),
+      })
+      const json = await res.json()
+      if (!res.ok) return { data: null, error: new Error(json.error || 'Failed to create product') }
+      return { data: json.data, error: null }
+    } catch (err) {
+      console.warn('API createProduct failed, falling back to direct Supabase:', err)
+    }
+  }
+  const { data, error } = await sb().from('products').insert(product as any).select().single()
   return { data, error }
 }
 
-export async function updateProduct(id: string, updates: Partial<Product>) {
-  const { data, error } = await sb().from('products').update(updates).eq('id', id).select().single()
+export async function updateProduct(id: string, updates: Partial<Product> & { category?: string }) {
   clearCache()
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...updates }),
+      })
+      const json = await res.json()
+      if (!res.ok) return { data: null, error: new Error(json.error || 'Failed to update product') }
+      return { data: json.data, error: null }
+    } catch (err) {
+      console.warn('API updateProduct failed, falling back to direct Supabase:', err)
+    }
+  }
+  const { data, error } = await sb().from('products').update(updates).eq('id', id).select().single()
   return { data, error }
 }
 
 export async function deleteProduct(id: string) {
-  const { error } = await sb().from('products').delete().eq('id', id)
   clearCache()
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch(`/api/admin/products?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
+      const json = await res.json()
+      if (!res.ok) return { error: new Error(json.error || 'Failed to delete product') }
+      return { error: null }
+    } catch (err) {
+      console.warn('API deleteProduct failed, falling back to direct Supabase:', err)
+    }
+  }
+  const { error } = await sb().from('products').delete().eq('id', id)
   return { error }
 }
 
