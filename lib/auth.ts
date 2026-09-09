@@ -6,7 +6,10 @@ function sb() {
 }
 
 function getRedirectBase(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+  if (typeof window !== 'undefined' && window.location.origin) {
+    return window.location.origin
+  }
+  return process.env.NEXT_PUBLIC_APP_URL || 'https://srinathayogaschoolex.vercel.app'
 }
 
 export async function signUpWithEmail(email: string, password: string, name: string) {

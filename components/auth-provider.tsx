@@ -36,6 +36,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search)
+      const code = searchParams.get('code')
+      if (code && !window.location.pathname.startsWith('/auth/callback')) {
+        window.location.href = `/auth/callback?code=${encodeURIComponent(code)}&next=/dashboard`
+        return
+      }
+    }
+
     try {
       refresh().catch(() => {}).finally(() => setLoading(false))
 
@@ -43,6 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           refresh().catch(() => {})
+          if (typeof window !== 'undefined') {
+            const path = window.location.pathname
+            const hasAuthTokens = window.location.search.includes('code') || window.location.hash.includes('access_token')
+            if (path === '/dashboard/login' || (path === '/' && hasAuthTokens)) {
+              window.location.href = '/dashboard'
+            }
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null)
           setProfile(null)
