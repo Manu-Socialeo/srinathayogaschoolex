@@ -92,7 +92,30 @@ CREATE POLICY "Courses are manageable by admins" ON courses FOR ALL USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
 );
 
--- 4. Lessons
+-- 4. Enrollments
+CREATE TABLE IF NOT EXISTS enrollments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  progress DECIMAL(5, 2) NOT NULL DEFAULT 0,
+  started_at TIMESTAMPTZ DEFAULT now(),
+  completed_at TIMESTAMPTZ,
+  certificate_issued BOOLEAN NOT NULL DEFAULT false,
+  UNIQUE(user_id, course_id)
+);
+
+ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Enrollments viewable by owner" ON enrollments;
+CREATE POLICY "Enrollments viewable by owner"
+  ON enrollments FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Enrollments manageable by owner" ON enrollments;
+CREATE POLICY "Enrollments manageable by owner"
+  ON enrollments FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Enrollments updatable by owner" ON enrollments;
+CREATE POLICY "Enrollments updatable by owner"
+  ON enrollments FOR UPDATE USING (auth.uid() = user_id);
+
+-- 5. Lessons
 CREATE TABLE IF NOT EXISTS lessons (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
@@ -222,30 +245,7 @@ DROP POLICY IF EXISTS "Addresses updatable by owner" ON shipping_addresses;
 CREATE POLICY "Addresses updatable by owner"
   ON shipping_addresses FOR UPDATE USING (auth.uid() = user_id);
 
--- 10. Enrollments
-CREATE TABLE IF NOT EXISTS enrollments (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
-  progress DECIMAL(5, 2) NOT NULL DEFAULT 0,
-  started_at TIMESTAMPTZ DEFAULT now(),
-  completed_at TIMESTAMPTZ,
-  certificate_issued BOOLEAN NOT NULL DEFAULT false,
-  UNIQUE(user_id, course_id)
-);
-
-ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Enrollments viewable by owner" ON enrollments;
-CREATE POLICY "Enrollments viewable by owner"
-  ON enrollments FOR SELECT USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Enrollments manageable by owner" ON enrollments;
-CREATE POLICY "Enrollments manageable by owner"
-  ON enrollments FOR INSERT WITH CHECK (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Enrollments updatable by owner" ON enrollments;
-CREATE POLICY "Enrollments updatable by owner"
-  ON enrollments FOR UPDATE USING (auth.uid() = user_id);
-
--- 11. Lesson Progress
+-- 10. Lesson Progress
 CREATE TABLE IF NOT EXISTS lesson_progress (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
