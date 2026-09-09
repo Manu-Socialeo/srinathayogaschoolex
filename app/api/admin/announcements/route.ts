@@ -18,7 +18,11 @@ export async function GET() {
       .select('*')
       .order('date', { ascending: false })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      // Table may not exist yet — return empty gracefully
+      console.warn('announcements table error:', error.message)
+      return NextResponse.json({ data: [], _tableReady: false })
+    }
     return NextResponse.json({ data: data ?? [] })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 })
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return NextResponse.json({ error: error.message + ' — Have you run the SQL migration in Supabase Studio?' }, { status: 500 })
     return NextResponse.json({ data }, { status: 201 })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed to create' }, { status: 500 })
