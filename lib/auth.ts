@@ -28,12 +28,13 @@ export async function signInWithEmail(email: string, password: string) {
   return data
 }
 
-export async function signInWithOtp(email: string) {
+export async function signInWithOtp(email: string, redirectTo?: string) {
+  const target = redirectTo || `${getRedirectBase()}/auth/callback`
   const { error } = await sb().auth.signInWithOtp({
     email,
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: `${getRedirectBase()}/auth/callback`,
+      emailRedirectTo: target,
     },
   })
   if (error) throw error

@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Shield, Lock, Mail, ArrowRight, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { signInWithEmail } from '@/lib/auth'
+import { signInWithEmail, signInWithOtp } from '@/lib/auth'
 
 function AdminLoginForm() {
   const router = useRouter()
@@ -15,6 +15,7 @@ function AdminLoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [magicSent, setMagicSent] = useState(false)
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,6 +27,24 @@ function AdminLoginForm() {
       router.push(redirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Admin authentication failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleMagicLink = async () => {
+    if (!email.trim()) {
+      setError('Please enter your admin email address first.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    try {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://srinathayogaschoolex.vercel.app'
+      await signInWithOtp(email.trim(), `${baseUrl}/auth/callback?next=/dashboard`)
+      setMagicSent(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send admin magic link')
     } finally {
       setLoading(false)
     }
@@ -92,10 +111,37 @@ function AdminLoginForm() {
               disabled={loading}
               className="w-full bg-[#264020] hover:bg-[#3a5a30] text-white py-3 rounded-xl font-medium mt-2 shadow-xs transition-all"
             >
-              {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
+              {loading ? 'Authenticating...' : 'Sign In with Password'}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#E5E5E5]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-3 bg-white text-[#264020]/60 uppercase tracking-wider font-semibold">Or sign in with email link</span>
+              </div>
+            </div>
+
+            {magicSent ? (
+              <div className="mt-4 p-4 bg-green-50 text-green-700 rounded-xl text-xs text-center border border-green-200">
+                ✨ Admin login link sent! Please check your email inbox.
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleMagicLink}
+                disabled={loading || !email}
+                className="w-full mt-4 flex items-center justify-center gap-2 border border-[#E5E5E5] rounded-xl py-2.5 text-xs font-semibold text-[#264020] hover:bg-[#FAF8F5] transition-colors disabled:opacity-50"
+              >
+                <Mail className="w-4 h-4" />
+                {loading ? 'Sending link...' : 'Send Magic Link to Email'}
+              </button>
+            )}
+          </div>
 
           {/* Cross portal links */}
           <div className="mt-8 pt-6 border-t border-[#E5E5E5] flex flex-col gap-2.5 text-center text-xs text-[#264020]/70">
