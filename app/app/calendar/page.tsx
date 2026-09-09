@@ -72,7 +72,7 @@ export default function CalendarPage() {
             <CalendarIcon className="w-16 h-16 text-[#264020]/20 mx-auto mb-4" />
             <h2 className="font-serif text-xl text-[#264020] mb-2">No upcoming events</h2>
             <p className="text-[#264020]/60 mb-6">Register for a workshop to see it here.</p>
-            <Link href="/dashboard"><Button className="bg-[#264020] hover:bg-[#3a5a30] text-white">Back to Dashboard</Button></Link>
+            <Link href="/app"><Button className="bg-[#264020] hover:bg-[#3a5a30] text-white">Back to Dashboard</Button></Link>
           </div>
         ) : (
           <div className="space-y-4">
@@ -113,7 +113,7 @@ export default function CalendarPage() {
         )}
 
         <div className="mt-8 text-center">
-          <Link href="/dashboard" className="inline-flex items-center gap-1 text-[#264020]/60 text-sm hover:text-[#264020]">
+          <Link href="/app" className="inline-flex items-center gap-1 text-[#264020]/60 text-sm hover:text-[#264020]">
             <ChevronLeft className="w-4 h-4" /> Back to Dashboard
           </Link>
         </div>

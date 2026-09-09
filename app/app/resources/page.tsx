@@ -26,7 +26,7 @@ export default function ResourcesPage() {
 
   useEffect(() => {
     if (authLoading) return
-    if (!user) { router.push('/dashboard/login'); return }
+    if (!user) { router.push('/app/login'); return }
     async function load() {
       const supabase = createBrowserClient()
       const { data } = await supabase
@@ -58,7 +58,7 @@ export default function ResourcesPage() {
             <FileText className="w-16 h-16 text-[#264020]/20 mx-auto mb-4" />
             <h2 className="font-serif text-xl text-[#264020] mb-2">No resources available yet</h2>
             <p className="text-[#264020]/60 mb-6">Resources will appear here once they are added.</p>
-            <Link href="/dashboard"><Button className="bg-[#264020] hover:bg-[#3a5a30] text-white">Back to Dashboard</Button></Link>
+            <Link href="/app"><Button className="bg-[#264020] hover:bg-[#3a5a30] text-white">Back to Dashboard</Button></Link>
           </div>
         ) : (
           <div className="space-y-4">
@@ -102,7 +102,7 @@ export default function ResourcesPage() {
         )}
 
         <div className="mt-8 text-center">
-          <Link href="/dashboard" className="inline-flex items-center gap-1 text-[#264020]/60 text-sm hover:text-[#264020]">
+          <Link href="/app" className="inline-flex items-center gap-1 text-[#264020]/60 text-sm hover:text-[#264020]">
             <ChevronLeft className="w-4 h-4" /> Back to Dashboard
           </Link>
         </div>

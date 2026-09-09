@@ -147,7 +147,7 @@ export default function AccountPage() {
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Back */}
         <Link
-          href="/dashboard"
+          href="/app"
           className="inline-flex items-center gap-2 text-[#264020]/60 hover:text-[#264020] text-sm mb-6 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

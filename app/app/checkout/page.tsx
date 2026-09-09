@@ -126,7 +126,7 @@ export default function DashboardCheckoutPage() {
     } catch {}
     setSuccess(true)
     clearCart()
-    setTimeout(() => router.push('/dashboard/orders'), 1500)
+    setTimeout(() => router.push('/app/orders'), 1500)
   }
 
   if (pageLoading) {
@@ -142,7 +142,7 @@ export default function DashboardCheckoutPage() {
       <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center">
         <div className="text-center">
           <p className="text-[#264020]/60 mb-4">Your cart is empty</p>
-          <Link href="/dashboard"><Button className="bg-[#264020] text-white">Back to Dashboard</Button></Link>
+          <Link href="/app"><Button className="bg-[#264020] text-white">Back to Dashboard</Button></Link>
         </div>
       </div>
     )

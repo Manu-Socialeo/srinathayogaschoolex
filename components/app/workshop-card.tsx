@@ -45,7 +45,7 @@ export function WorkshopCard({ workshop, variant = 'default', onClick }: Worksho
             </span>
           </div>
 
-          <Link href="/dashboard">
+          <Link href="/app">
             <button
               className="w-full mt-4 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-medium"
             >
@@ -90,7 +90,7 @@ export function WorkshopCard({ workshop, variant = 'default', onClick }: Worksho
           </span>
         </div>
 
-        <Link href="/dashboard">
+        <Link href="/app">
           <button
             className="w-full mt-4 py-3 bg-primary text-primary-foreground rounded-full text-sm font-medium"
           >

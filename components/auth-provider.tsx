@@ -40,7 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const searchParams = new URLSearchParams(window.location.search)
       const code = searchParams.get('code')
       if (code && !window.location.pathname.startsWith('/auth/callback')) {
-        window.location.href = `/auth/callback?code=${encodeURIComponent(code)}&next=/dashboard`
+        const next = window.location.pathname.startsWith('/dashboard') ? '/dashboard' : '/app'
+        window.location.href = `/auth/callback?code=${encodeURIComponent(code)}&next=${next}`
         return
       }
     }
@@ -55,7 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (typeof window !== 'undefined') {
             const path = window.location.pathname
             const hasAuthTokens = window.location.search.includes('code') || window.location.hash.includes('access_token')
-            if (path === '/dashboard/login' || (path === '/' && hasAuthTokens)) {
+            if (path === '/app/login' || (path === '/' && hasAuthTokens)) {
+              window.location.href = '/app'
+            } else if (path === '/dashboard/login') {
               window.location.href = '/dashboard'
             }
           }

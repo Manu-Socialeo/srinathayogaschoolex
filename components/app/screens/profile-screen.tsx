@@ -101,7 +101,7 @@ export function ProfileScreen() {
 
   const settingsItems = [
     { icon: Bell, label: 'Notifications' },
-    { icon: Settings, label: 'Account Settings', onClick: () => router.push('/dashboard/account') },
+    { icon: Settings, label: 'Account Settings', onClick: () => router.push('/app/account') },
     { icon: HelpCircle, label: 'Help & Support' },
     { icon: Mail, label: 'Contact Us' },
   ]
@@ -145,7 +145,7 @@ export function ProfileScreen() {
             <p className="text-sm text-muted-foreground truncate">{profile?.email || authEmail}</p>
             <p className="text-xs text-muted-foreground mt-1">Member since {memberSince}</p>
           </div>
-          <button onClick={() => router.push('/dashboard/account')} className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center touch-target transition-transform active:scale-95">
+          <button onClick={() => router.push('/app/account')} className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center touch-target transition-transform active:scale-95">
             <Settings className="w-5 h-5 text-foreground" />
           </button>
         </div>
@@ -172,7 +172,7 @@ export function ProfileScreen() {
       {/* Profile Completion */}
       <div className="px-4">
         {allDone ? (
-          <button onClick={() => router.push('/dashboard/account')}
+          <button onClick={() => router.push('/app/account')}
             className="w-full bg-card rounded-xl border border-border/50 p-3 flex items-center justify-between card-interactive">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-primary" />
@@ -201,7 +201,7 @@ export function ProfileScreen() {
                   <span className="text-xs text-foreground">Name</span>
                 </div>
               </div>
-              <button onClick={() => router.push('/dashboard/account')}
+              <button onClick={() => router.push('/app/account')}
                 className="w-full flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {passwordDone
@@ -211,7 +211,7 @@ export function ProfileScreen() {
                 </div>
                 <span className="text-xs text-primary font-medium">{passwordDone ? 'Done' : 'Set'}</span>
               </button>
-              <button onClick={() => router.push('/dashboard/account')}
+              <button onClick={() => router.push('/app/account')}
                 className="w-full flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {phoneDone
@@ -221,7 +221,7 @@ export function ProfileScreen() {
                 </div>
                 <span className="text-xs text-primary font-medium">{phoneDone ? 'Done' : 'Add'}</span>
               </button>
-              <button onClick={() => router.push('/dashboard/account')}
+              <button onClick={() => router.push('/app/account')}
                 className="w-full flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {addressDone

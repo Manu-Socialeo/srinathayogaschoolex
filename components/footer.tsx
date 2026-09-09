@@ -16,7 +16,8 @@ const footerLinks = {
   secondary: [
     { name: "Meet The Team", href: "/teachers" },
     { name: "Shop", href: "/shop" },
-    { name: "Student Login", href: "/dashboard/login" },
+    { name: "Student Web App", href: "/app/login" },
+    { name: "Admin Dashboard", href: "/dashboard/login" },
   ],
 }
 

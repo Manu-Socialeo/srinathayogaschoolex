@@ -91,6 +91,24 @@ export async function getProductsByCategory(slug: string): Promise<Product[]> {
   return data ?? []
 }
 
+export async function createProduct(product: Omit<Partial<Product>, 'id' | 'created_at'>) {
+  const { data, error } = await sb().from('products').insert(product as any).select().single()
+  clearCache()
+  return { data, error }
+}
+
+export async function updateProduct(id: string, updates: Partial<Product>) {
+  const { data, error } = await sb().from('products').update(updates).eq('id', id).select().single()
+  clearCache()
+  return { data, error }
+}
+
+export async function deleteProduct(id: string) {
+  const { error } = await sb().from('products').delete().eq('id', id)
+  clearCache()
+  return { error }
+}
+
 // Workshops
 export async function getWorkshops(): Promise<Workshop[]> {
   const { data } = await sb().from('workshops').select('*').order('start_date', { ascending: true })

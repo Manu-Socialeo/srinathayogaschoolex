@@ -4,9 +4,9 @@ import { createServerClient } from '@supabase/ssr'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  let next = searchParams.get('next') ?? '/dashboard'
+  let next = searchParams.get('next') ?? '/app'
   if (!next.startsWith('/') || next.startsWith('//') || next.includes(':')) {
-    next = '/dashboard'
+    next = '/app'
   }
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${new URL(request.url).origin}`
 
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.redirect(`${baseUrl}/dashboard/login?error=config_error`)
+      return NextResponse.redirect(`${baseUrl}/app/login?error=config_error`)
     }
 
     let response = NextResponse.redirect(`${baseUrl}${next}`)
@@ -43,5 +43,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(`${baseUrl}/dashboard/login?error=auth_callback_error`)
+  return NextResponse.redirect(`${baseUrl}/app/login?error=auth_callback_error`)
 }

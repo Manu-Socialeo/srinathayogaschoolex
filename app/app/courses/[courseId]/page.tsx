@@ -60,7 +60,7 @@ export default function CourseDetailPage() {
     })
     setAddedToCart(true)
     setAdding(false)
-    router.push('/dashboard/checkout')
+    router.push('/app/checkout')
   }
 
   if (loading) {
@@ -153,7 +153,7 @@ export default function CourseDetailPage() {
                   </Button>
                 </Link>
               ) : addedToCart ? (
-                <Link href="/dashboard/checkout">
+                <Link href="/app/checkout">
                   <Button className="w-full bg-[#264020] hover:bg-[#3a5a30] text-white py-4 text-lg mt-4">
                     Proceed to Checkout
                   </Button>

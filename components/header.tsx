@@ -70,9 +70,9 @@ export function Header() {
             <Link href="/cart" className="relative p-2 text-[#264020]/60 hover:text-[#264020] transition-colors">
               <ShoppingBag className="w-5 h-5" />
             </Link>
-            <Link href="/dashboard/login">
+            <Link href="/app/login">
               <Button className="bg-[#264020] hover:bg-[#3a5a30] text-white px-6">
-                Student Login
+                Student Web App
               </Button>
             </Link>
           </nav>
@@ -118,9 +118,9 @@ export function Header() {
                   </div>
                 </Link>
               </div>
-              <Link href="/dashboard/login" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/app/login" onClick={() => setIsMenuOpen(false)}>
                 <Button className="bg-[#264020] hover:bg-[#3a5a30] text-white w-full">
-                  Student Login
+                  Student Web App
                 </Button>
               </Link>
             </nav>

@@ -4,145 +4,106 @@ import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { signInWithEmail, signInWithOtp } from '@/lib/auth'
+import { Shield, Lock, Mail, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { signInWithEmail } from '@/lib/auth'
 
-function LoginForm() {
+function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [magicSent, setMagicSent] = useState(false)
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError("")
+    setError('')
     try {
       await signInWithEmail(email, password)
-      try { const { default: posthog } = await import('posthog-js'); posthog.capture('login', { method: 'email' }) } catch {}
       router.push(redirect)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleMagicLink = async () => {
-    if (!email) { setError("Enter your email first"); return }
-    setLoading(true)
-    setError("")
-    try {
-      await signInWithOtp(email)
-      try { const { default: posthog } = await import('posthog-js'); posthog.capture('magic_link_sent') } catch {}
-      setMagicSent(true)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send magic link")
+      setError(err instanceof Error ? err.message : 'Admin authentication failed')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#1F361A] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-sm border border-[#E5E5E5] p-8">
-          <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-            <Image src="/images/logo.png" alt="Srinatha Yoga School" width={48} height={48} className="h-12 w-auto" />
-            <span className="font-serif text-xl font-semibold text-[#264020]">Srinatha Yoga School</span>
-          </Link>
-
-          <h1 className="font-serif text-2xl text-[#264020] text-center mb-2">Welcome Back</h1>
-          <p className="text-[#264020]/60 text-center mb-8">Login to continue your yoga journey</p>
+        <div className="bg-white rounded-3xl shadow-xl border border-white/20 p-8 sm:p-10">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 rounded-2xl bg-[#264020]/10 flex items-center justify-center mx-auto mb-4 p-2">
+              <Image src="/images/logo.png" alt="Srinatha Logo" width={48} height={48} className="h-10 w-auto" />
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#264020]/10 text-[#264020] mb-2">
+              <Shield className="w-3.5 h-3.5" /> Administrator Access
+            </div>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#264020]">Admin Dashboard</h1>
+            <p className="text-[#264020]/60 text-xs mt-1">Sign in to manage catalog, inventory, and products</p>
+          </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl mb-4">
+            <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3.5 rounded-xl mb-6 leading-relaxed">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#264020] mb-2">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                className="w-full px-4 py-3 border border-[#E5E5E5] rounded-xl text-[#264020] focus:outline-none focus:border-[#264020]"
-              />
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#264020]/80 mb-1.5">
+                Admin Email
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#264020]/40" />
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@srinathayogaschool.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#FAF8F5] border border-[#E5E5E5] rounded-xl text-sm focus:outline-none focus:border-[#264020] text-[#264020]"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#264020] mb-2">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                className="w-full px-4 py-3 border border-[#E5E5E5] rounded-xl text-[#264020] focus:outline-none focus:border-[#264020]"
-              />
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#264020]/80 mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#264020]/40" />
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#FAF8F5] border border-[#E5E5E5] rounded-xl text-sm focus:outline-none focus:border-[#264020] text-[#264020]"
+                />
+              </div>
             </div>
 
-              <div className="flex items-center justify-between">
-                <div />
-                <Link href="/dashboard/forgot-password" className="text-sm text-[#264020] hover:underline">Forgot password?</Link>
-              </div>
-
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#264020] hover:bg-[#3a5a30] disabled:opacity-50 text-white py-3 rounded-xl font-medium transition-colors"
+              className="w-full bg-[#264020] hover:bg-[#3a5a30] text-white py-3 rounded-xl font-medium mt-2 shadow-xs transition-all"
             >
-              {loading ? "Logging in..." : "Login"}
-            </button>
+              {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#E5E5E5]" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-[#264020]/60">Or login without password</span>
-              </div>
-            </div>
-
-            {magicSent ? (
-              <div className="mt-4 p-4 bg-green-50 text-green-700 rounded-xl text-sm text-center">
-                Magic link sent! Check your email inbox.
-              </div>
-            ) : (
-              <button
-                onClick={handleMagicLink}
-                disabled={loading || !email}
-                className="w-full mt-4 flex items-center justify-center gap-2 border border-[#E5E5E5] rounded-xl py-3 text-[#264020] hover:bg-[#FAF8F5] transition-colors disabled:opacity-50"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {loading ? "Sending..." : "Send Magic Link"}
-              </button>
-            )}
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-[#264020]/60 text-sm">
-              Don&apos;t have an account?{" "}
-              <Link href="/dashboard/signup" className="text-[#264020] font-medium hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-[#E5E5E5] text-center">
-            <Link href="/" className="text-[#264020]/60 text-sm hover:text-[#264020]">
-              ← Back to Home
+          {/* Cross portal links */}
+          <div className="mt-8 pt-6 border-t border-[#E5E5E5] flex flex-col gap-2.5 text-center text-xs text-[#264020]/70">
+            <Link href="/app/login" className="hover:text-[#264020] font-medium transition-colors">
+              Looking for student portal? <span className="underline">Go to Student Web App</span>
+            </Link>
+            <Link href="/" className="hover:text-[#264020] inline-flex items-center justify-center gap-1 transition-colors">
+              <ArrowLeft className="w-3 h-3" /> Back to Main Website
             </Link>
           </div>
         </div>
@@ -151,14 +112,10 @@ function LoginForm() {
   )
 }
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#264020] border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
-      <LoginForm />
+    <Suspense fallback={<div className="min-h-screen bg-[#1F361A] flex items-center justify-center text-white text-sm">Loading...</div>}>
+      <AdminLoginForm />
     </Suspense>
   )
 }

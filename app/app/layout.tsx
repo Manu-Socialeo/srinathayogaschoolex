@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from 'next'
-import { AdminLayoutClient } from '@/components/admin/admin-layout-client'
 
 export const metadata: Metadata = {
-  title: 'Admin Dashboard | Srinatha Yoga School',
-  description: 'Manage store products, inventory, orders, and website content.',
+  title: 'My Learning | Srinatha Yoga School',
+  description: 'Access your yoga courses, track progress, and continue your learning journey.',
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#264020',
+  viewportFit: 'cover',
 }
 
 export default function DashboardLayout({
@@ -17,5 +17,5 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <AdminLayoutClient>{children}</AdminLayoutClient>
+  return children
 }

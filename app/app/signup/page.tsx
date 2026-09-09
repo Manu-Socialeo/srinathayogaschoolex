@@ -40,7 +40,7 @@ export default function SignupPage() {
           </div>
           <h1 className="font-serif text-2xl text-[#264020] mb-2">Check Your Email</h1>
           <p className="text-[#264020]/60 mb-6">We sent a confirmation link to <strong>{email}</strong>. Please click it to activate your account.</p>
-          <Link href="/dashboard/login"><button className="text-[#264020] font-medium hover:underline">Back to Login</button></Link>
+          <Link href="/app/login"><button className="text-[#264020] font-medium hover:underline">Back to Login</button></Link>
         </div>
       </div>
     )
@@ -83,7 +83,7 @@ export default function SignupPage() {
 
           <div className="mt-6 text-center">
             <p className="text-[#264020]/60 text-sm">Already have an account?{' '}
-              <Link href="/dashboard/login" className="text-[#264020] font-medium hover:underline">Log in</Link>
+              <Link href="/app/login" className="text-[#264020] font-medium hover:underline">Log in</Link>
             </p>
           </div>
 
