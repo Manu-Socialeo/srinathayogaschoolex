@@ -146,7 +146,7 @@ function AdminLoginForm() {
           {/* Cross portal links */}
           <div className="mt-8 pt-6 border-t border-[#E5E5E5] flex flex-col gap-2.5 text-center text-xs text-[#264020]/70">
             <Link href="/app/login" className="hover:text-[#264020] font-medium transition-colors">
-              Looking for student portal? <span className="underline">Go to Student Web App</span>
+              Looking for student portal? <span className="underline">Go to Student App</span>
             </Link>
             <Link href="/" className="hover:text-[#264020] inline-flex items-center justify-center gap-1 transition-colors">
               <ArrowLeft className="w-3 h-3" /> Back to Main Website

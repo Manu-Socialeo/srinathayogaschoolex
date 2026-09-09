@@ -72,7 +72,7 @@ export function Header() {
             </Link>
             <Link href="/app/login">
               <Button className="bg-[#264020] hover:bg-[#3a5a30] text-white px-6">
-                Student Web App
+                Student App
               </Button>
             </Link>
           </nav>
@@ -120,7 +120,7 @@ export function Header() {
               </div>
               <Link href="/app/login" onClick={() => setIsMenuOpen(false)}>
                 <Button className="bg-[#264020] hover:bg-[#3a5a30] text-white w-full">
-                  Student Web App
+                  Student App
                 </Button>
               </Link>
             </nav>
