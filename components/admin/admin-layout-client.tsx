@@ -15,32 +15,102 @@ import {
   Menu,
   X,
   ShieldCheck,
+  BookOpen,
+  Users,
+  MessageSquare,
+  Megaphone,
+  BarChart3,
+  History,
+  FileSpreadsheet,
+  User,
+  Key,
+  Image as ImageIcon,
+  ChevronRight,
 } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
 import { signOut } from '@/lib/auth'
 
+interface NavSection {
+  label: string
+  items: { name: string; href: string; icon: React.ComponentType<{ className?: string }> }[]
+}
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    label: 'Core',
+    items: [
+      { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+      { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Catalog',
+    items: [
+      { name: 'Courses', href: '/dashboard/courses', icon: BookOpen },
+      { name: 'Workshops', href: '/dashboard/workshops', icon: GraduationCap },
+      { name: 'Products', href: '/dashboard/products', icon: Package },
+      { name: 'Teachers', href: '/dashboard/teachers', icon: Users },
+    ],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { name: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
+      { name: 'Inventory', href: '/dashboard/inventory', icon: Layers },
+      { name: 'Students', href: '/dashboard/users', icon: User },
+    ],
+  },
+  {
+    label: 'Marketing',
+    items: [
+      { name: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
+      { name: 'Banners', href: '/dashboard/banners', icon: ImageIcon },
+      { name: 'Leads / CRM', href: '/dashboard/leads', icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { name: 'Media Library', href: '/dashboard/media', icon: ImageIcon },
+      { name: 'Audit Logs', href: '/dashboard/audit-logs', icon: History },
+      { name: 'Data Export', href: '/dashboard/export', icon: FileSpreadsheet },
+      { name: 'Profile', href: '/dashboard/profile', icon: Key },
+    ],
+  },
+]
+
 export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, profile, loading } = useAuth()
+  const { user, profile } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
 
-  // Don't render admin chrome on login / reset password pages inside dashboard
-  if (pathname === '/dashboard/login' || pathname === '/dashboard/forgot-password' || pathname === '/dashboard/reset-password') {
+  // Don't render admin chrome on auth pages
+  if (
+    pathname === '/dashboard/login' ||
+    pathname === '/dashboard/forgot-password' ||
+    pathname === '/dashboard/reset-password'
+  ) {
     return <>{children}</>
   }
 
-  const navItems = [
-    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Products', href: '/dashboard/products', icon: Package },
-    { name: 'Inventory', href: '/dashboard/inventory', icon: Layers },
-    { name: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
-  ]
+  const toggleSection = (label: string) => {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev)
+      if (next.has(label)) next.delete(label)
+      else next.add(label)
+      return next
+    })
+  }
 
   const handleLogout = async () => {
     await signOut().catch(() => {})
     router.push('/dashboard/login')
   }
+
+  const isActive = (href: string) =>
+    pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
 
   return (
     <div className="min-h-screen bg-[#F7F9F6] flex">
@@ -67,51 +137,65 @@ export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
             <div>
               <span className="font-serif font-bold text-base tracking-wide block leading-tight">Srinatha</span>
               <span className="text-[11px] text-[#A8C7A0] tracking-wider uppercase font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Admin Dashboard
+                <ShieldCheck className="w-3 h-3" /> Admin Panel
               </span>
             </div>
           </Link>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-1 text-white/70 hover:text-white"
-          >
+          <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1 text-white/70 hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Navigation Links */}
-        <div className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-          <p className="px-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-2">
-            Management
-          </p>
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+        {/* Navigation */}
+        <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
+          {NAV_SECTIONS.map((section) => {
+            const collapsed = collapsedSections.has(section.label)
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-white/15 text-white shadow-xs font-semibold'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#8AD679]' : 'text-white/60'}`} />
-                {item.name}
-              </Link>
+              <div key={section.label} className="mb-2">
+                <button
+                  onClick={() => toggleSection(section.label)}
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold text-white/40 uppercase tracking-widest hover:text-white/60 transition-colors"
+                >
+                  {section.label}
+                  <ChevronRight
+                    className={`w-3 h-3 transition-transform ${collapsed ? '' : 'rotate-90'}`}
+                  />
+                </button>
+
+                {!collapsed && (
+                  <div className="space-y-0.5 mt-0.5">
+                    {section.items.map((item) => {
+                      const Icon = item.icon
+                      const active = isActive(item.href)
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          onClick={() => setMobileOpen(false)}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                            active
+                              ? 'bg-white/15 text-white font-semibold'
+                              : 'text-white/65 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#8AD679]' : 'text-white/50'}`} />
+                          <span className="truncate">{item.name}</span>
+                          {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#8AD679]" />}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             )
           })}
 
-          {/* Quick Portals Switch */}
-          <div className="pt-6 mt-6 border-t border-white/10">
-            <p className="px-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-2">
-              Cross Navigation
-            </p>
+          {/* Cross Navigation */}
+          <div className="pt-4 mt-4 border-t border-white/10">
+            <p className="px-3 text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1">Portals</p>
             <Link
               href="/app"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/65 hover:bg-white/10 hover:text-white transition-colors"
             >
               <GraduationCap className="w-4 h-4 text-[#A8C7A0]" />
               Student App
@@ -119,18 +203,18 @@ export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
             <Link
               href="/"
               target="_blank"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/65 hover:bg-white/10 hover:text-white transition-colors"
             >
               <ExternalLink className="w-4 h-4 text-[#A8C7A0]" />
-              View Public Website
+              Public Website
             </Link>
           </div>
         </div>
 
-        {/* User / Sign Out Footer */}
+        {/* User Footer */}
         <div className="p-4 border-t border-white/10 bg-black/10 flex items-center justify-between">
           <div className="truncate pr-2">
-            <p className="text-xs font-semibold text-white truncate">{profile?.name || user?.email || 'Admin User'}</p>
+            <p className="text-xs font-semibold text-white truncate">{profile?.name || user?.email || 'Admin'}</p>
             <p className="text-[11px] text-white/50 truncate">Administrator</p>
           </div>
           <button
@@ -143,28 +227,22 @@ export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header Bar */}
-        <header className="lg:hidden h-16 bg-white border-b border-[#E5E5E5] px-4 flex items-center justify-between sticky top-0 z-30">
+        {/* Mobile Header */}
+        <header className="lg:hidden h-14 bg-[#1F361A] px-4 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setMobileOpen(true)}
-              className="p-2 text-[#264020] hover:bg-[#FAF8F5] rounded-lg"
-            >
-              <Menu className="w-6 h-6" />
+            <button onClick={() => setMobileOpen(true)} className="p-2 text-white hover:bg-white/10 rounded-lg">
+              <Menu className="w-5 h-5" />
             </button>
-            <span className="font-serif font-semibold text-[#264020]">Admin Dashboard</span>
+            <span className="font-serif font-semibold text-white text-sm">Admin Panel</span>
           </div>
-          <Link
-            href="/app"
-            className="text-xs font-medium text-[#264020] bg-[#264020]/10 px-3 py-1.5 rounded-lg hover:bg-[#264020]/20 transition-colors"
-          >
-            Web App
+          <Link href="/app" className="text-xs font-medium text-[#8AD679] bg-white/10 px-3 py-1.5 rounded-lg">
+            Student App
           </Link>
         </header>
 
-        {/* Page Viewport */}
+        {/* Page Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>

@@ -2,293 +2,203 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import {
-  Package,
-  Layers,
-  ShoppingBag,
-  AlertTriangle,
-  Plus,
-  ArrowRight,
-  TrendingUp,
-  CheckCircle2,
-  XCircle,
-  RefreshCw,
+  Package, ShoppingBag, Users, BookOpen, GraduationCap,
+  MessageSquare, TrendingUp, ArrowRight, RefreshCw, DollarSign, Activity,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { fetchProducts, updateProduct } from '@/lib/supabase-queries'
-import type { Product as AppProduct } from '@/lib/app-data'
+
+interface DashStats {
+  revenue: number
+  totalOrders: number
+  pendingOrders: number
+  totalUsers: number
+  publishedCourses: number
+  totalCourses: number
+  totalWorkshops: number
+  totalProducts: number
+  totalLeads: number
+  recentOrders: {
+    id: string
+    total: number
+    status: string
+    created_at: string
+    profiles?: { name: string; email: string }
+  }[]
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-amber-100 text-amber-700',
+  completed: 'bg-emerald-100 text-emerald-700',
+  failed: 'bg-red-100 text-red-700',
+  refunded: 'bg-gray-100 text-gray-600',
+}
 
 export default function AdminDashboardOverviewPage() {
-  const [products, setProducts] = useState<AppProduct[]>([])
+  const [stats, setStats] = useState<DashStats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
-  const loadData = async () => {
+  const load = async () => {
     setLoading(true)
     try {
-      const prods = await fetchProducts()
-      setProducts(prods)
-    } catch (err) {
-      console.error('Failed to load products:', err)
+      const [orders, users, courses, workshops, products, leads] = await Promise.all([
+        fetch('/api/admin/orders').then(r => r.json()),
+        fetch('/api/admin/users').then(r => r.json()),
+        fetch('/api/admin/courses').then(r => r.json()),
+        fetch('/api/admin/workshops').then(r => r.json()),
+        fetch('/api/admin/products').then(r => r.json()),
+        fetch('/api/admin/leads').then(r => r.json()),
+      ])
+
+      const ordersData = orders.data || []
+      const completedOrders = ordersData.filter((o: any) => o.status === 'completed')
+      const revenue = completedOrders.reduce((s: number, o: any) => s + (o.total || 0), 0)
+
+      setStats({
+        revenue,
+        totalOrders: ordersData.length,
+        pendingOrders: ordersData.filter((o: any) => o.status === 'pending').length,
+        totalUsers: (users.data || []).length,
+        publishedCourses: (courses.data || []).filter((c: any) => c.published).length,
+        totalCourses: (courses.data || []).length,
+        totalWorkshops: (workshops.data || []).length,
+        totalProducts: (products.data || []).length,
+        totalLeads: (leads.data || []).length,
+        recentOrders: ordersData.slice(0, 5),
+      })
+    } catch (e) {
+      console.error(e)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  useEffect(() => { load() }, [])
 
-  const toggleStock = async (product: AppProduct) => {
-    setUpdatingId(product.id)
-    try {
-      const newStatus = !product.inStock
-      await updateProduct(product.id, { in_stock: newStatus })
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, inStock: newStatus } : p))
-      )
-    } catch (err) {
-      console.error('Error updating stock status:', err)
-    } finally {
-      setUpdatingId(null)
-    }
-  }
+  const kpis = stats ? [
+    { label: 'Total Revenue', value: `₹${stats.revenue.toLocaleString()}`, sub: `${stats.totalOrders} orders`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', href: '/dashboard/orders' },
+    { label: 'Pending Orders', value: stats.pendingOrders, sub: 'Awaiting fulfillment', icon: ShoppingBag, color: 'text-amber-600', bg: 'bg-amber-50', href: '/dashboard/orders' },
+    { label: 'Registered Students', value: stats.totalUsers, sub: 'All users', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', href: '/dashboard/users' },
+    { label: 'Published Courses', value: `${stats.publishedCourses} / ${stats.totalCourses}`, sub: 'Live vs. total', icon: BookOpen, color: 'text-purple-600', bg: 'bg-purple-50', href: '/dashboard/courses' },
+    { label: 'Workshops', value: stats.totalWorkshops, sub: 'Active workshops', icon: GraduationCap, color: 'text-indigo-600', bg: 'bg-indigo-50', href: '/dashboard/workshops' },
+    { label: 'Open Inquiries', value: stats.totalLeads, sub: 'Contact messages', icon: MessageSquare, color: 'text-pink-600', bg: 'bg-pink-50', href: '/dashboard/leads' },
+  ] : []
 
-  const inStockCount = products.filter((p) => p.inStock).length
-  const outOfStockCount = products.filter((p) => !p.inStock).length
-  const totalValue = products.reduce((sum, p) => sum + (p.price || 0), 0)
+  const quickLinks = [
+    { label: 'Courses', href: '/dashboard/courses', icon: BookOpen },
+    { label: 'Workshops', href: '/dashboard/workshops', icon: GraduationCap },
+    { label: 'Products', href: '/dashboard/products', icon: Package },
+    { label: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
+    { label: 'Students', href: '/dashboard/users', icon: Users },
+    { label: 'Leads', href: '/dashboard/leads', icon: MessageSquare },
+    { label: 'Analytics', href: '/dashboard/analytics', icon: TrendingUp },
+    { label: 'Export', href: '/dashboard/export', icon: Activity },
+  ]
 
   return (
     <div className="space-y-8">
-      {/* Header Bar */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#264020]">
-            Admin Dashboard
+            Welcome back 🌿
           </h1>
           <p className="text-[#264020]/60 text-sm mt-1">
-            Manage your store catalog, real-time inventory, and product listings.
+            Here&apos;s your school&apos;s live performance overview.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={loadData}
-            variant="outline"
-            className="border-[#264020]/20 text-[#264020] hover:bg-[#264020]/5 gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Link href="/dashboard/products">
-            <Button className="bg-[#264020] hover:bg-[#3a5a30] text-white gap-2 shadow-sm">
-              <Plus className="w-4 h-4" />
-              Add Product
-            </Button>
-          </Link>
+        <Button onClick={load} variant="outline" className="border-[#264020]/20 text-[#264020] hover:bg-[#264020]/5 gap-2">
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
+
+      {/* KPI Grid */}
+      {loading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-[#264020]/10 p-5 animate-pulse">
+              <div className="w-10 h-10 rounded-xl bg-[#264020]/8 mb-4" />
+              <div className="h-8 w-16 bg-[#264020]/8 rounded-lg mb-2" />
+              <div className="h-4 w-24 bg-[#264020]/5 rounded" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          {kpis.map((kpi) => {
+            const Icon = kpi.icon
+            return (
+              <Link key={kpi.label} href={kpi.href}
+                className="bg-white rounded-2xl border border-[#264020]/10 shadow-sm p-5 hover:shadow-md transition-all hover:border-[#264020]/20 group">
+                <div className={`w-10 h-10 rounded-xl ${kpi.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <Icon className={`w-5 h-5 ${kpi.color}`} />
+                </div>
+                <p className="text-2xl sm:text-3xl font-bold text-[#264020]">{kpi.value}</p>
+                <p className="font-semibold text-[#264020]/80 text-sm mt-1">{kpi.label}</p>
+                <p className="text-xs text-[#264020]/40 mt-0.5">{kpi.sub}</p>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Quick Links */}
+      <div>
+        <h2 className="font-serif font-bold text-[#264020] text-lg mb-3">Quick Access</h2>
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+          {quickLinks.map((link) => {
+            const Icon = link.icon
+            return (
+              <Link key={link.label} href={link.href}
+                className="bg-white rounded-xl border border-[#264020]/10 p-3 text-center hover:bg-[#264020] hover:text-white group transition-all shadow-sm">
+                <Icon className="w-5 h-5 mx-auto mb-1.5 text-[#264020] group-hover:text-white transition-colors" />
+                <span className="text-[11px] font-medium text-[#264020] group-hover:text-white transition-colors">{link.label}</span>
+              </Link>
+            )
+          })}
         </div>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white p-5 rounded-2xl border border-[#E5E5E5] shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-[#264020]/60 uppercase tracking-wider">
-              Total Products
-            </p>
-            <p className="text-2xl font-bold text-[#264020] mt-1">{products.length}</p>
-            <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1 font-medium">
-              <TrendingUp className="w-3 h-3" /> Live in catalog
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-[#264020]/10 flex items-center justify-center text-[#264020]">
-            <Package className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-[#E5E5E5] shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-[#264020]/60 uppercase tracking-wider">
-              In Stock Items
-            </p>
-            <p className="text-2xl font-bold text-emerald-700 mt-1">{inStockCount}</p>
-            <p className="text-xs text-[#264020]/60 mt-1">Available for order</p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-[#E5E5E5] shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-[#264020]/60 uppercase tracking-wider">
-              Out of Stock
-            </p>
-            <p className="text-2xl font-bold text-amber-600 mt-1">{outOfStockCount}</p>
-            <p className="text-xs text-amber-700 mt-1 flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3" /> Needs restocking
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-            <Layers className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-[#E5E5E5] shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-[#264020]/60 uppercase tracking-wider">
-              Catalog Avg Price
-            </p>
-            <p className="text-2xl font-bold text-[#264020] mt-1">
-              ₹{products.length > 0 ? Math.round(totalValue / products.length).toLocaleString('en-IN') : 0}
-            </p>
-            <p className="text-xs text-[#264020]/60 mt-1">Per product item</p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-700">
-            <ShoppingBag className="w-6 h-6" />
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Action Navigation Panels */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="bg-gradient-to-br from-[#264020] to-[#1a2d16] text-white p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-          <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-[#A8C7A0] mb-4">
-              <Package className="w-3.5 h-3.5" /> Product Management
-            </span>
-            <h3 className="font-serif text-xl font-bold mb-2">Manage Store Catalog</h3>
-            <p className="text-white/70 text-sm leading-relaxed mb-6">
-              Create new products, upload images, update descriptions, set promotional pricing, or remove discontinued inventory items.
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Link href="/dashboard/products">
-              <Button className="bg-white text-[#264020] hover:bg-white/90 font-medium">
-                Open Products List
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-[#E5E5E5] shadow-xs flex flex-col justify-between">
-          <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 mb-4 border border-amber-200">
-              <Layers className="w-3.5 h-3.5" /> Real-Time Inventory
-            </span>
-            <h3 className="font-serif text-xl font-bold text-[#264020] mb-2">Inventory Control</h3>
-            <p className="text-[#264020]/70 text-sm leading-relaxed mb-6">
-              Quickly toggle in-stock availability, review out-of-stock items, and update stock status with one click to keep your online store in sync.
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Link href="/dashboard/inventory">
-              <Button variant="outline" className="border-[#264020] text-[#264020] hover:bg-[#264020]/5 font-medium">
-                Open Inventory Control
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Catalog Quick Management Table */}
-      <div className="bg-white rounded-2xl border border-[#E5E5E5] shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-[#E5E5E5] flex items-center justify-between">
-          <div>
-            <h2 className="font-serif text-lg font-bold text-[#264020]">Products Quick Status</h2>
-            <p className="text-xs text-[#264020]/60 mt-0.5">Quickly toggle stock availability for online shoppers</p>
-          </div>
-          <Link href="/dashboard/products" className="text-xs font-semibold text-[#264020] hover:underline flex items-center gap-1">
-            View All ({products.length})
-            <ArrowRight className="w-3.5 h-3.5" />
+      {/* Recent Orders */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-serif font-bold text-[#264020] text-lg">Recent Orders</h2>
+          <Link href="/dashboard/orders" className="text-xs font-medium text-[#264020]/60 hover:text-[#264020] flex items-center gap-1">
+            View all <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
 
-        {loading ? (
-          <div className="p-12 text-center text-[#264020]/60 text-sm">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#264020]" />
-            Loading catalog products...
-          </div>
-        ) : products.length === 0 ? (
-          <div className="p-12 text-center">
-            <Package className="w-12 h-12 text-[#264020]/20 mx-auto mb-3" />
-            <p className="font-medium text-[#264020]">No products found in catalog</p>
-            <p className="text-sm text-[#264020]/60 mt-1 mb-4">Add your first yoga product to get started</p>
-            <Link href="/dashboard/products">
-              <Button className="bg-[#264020] hover:bg-[#3a5a30] text-white">Add Product</Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#FAF8F5] text-[11px] font-semibold text-[#264020]/60 uppercase tracking-wider border-b border-[#E5E5E5]">
-                  <th className="py-3 px-4">Product</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Price</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Quick Toggle</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E5E5E5] text-sm">
-                {products.slice(0, 6).map((item) => (
-                  <tr key={item.id} className="hover:bg-[#FAF8F5]/50 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#FAF8F5] border border-[#E5E5E5] overflow-hidden relative shrink-0">
-                          {item.image ? (
-                            <Image src={item.image} alt={item.title} fill className="object-cover" />
-                          ) : (
-                            <Package className="w-5 h-5 text-[#264020]/40 m-auto" />
-                          )}
-                        </div>
-                        <span className="font-medium text-[#264020]">{item.title}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-[#264020]/70 capitalize">{item.category || 'Store Item'}</td>
-                    <td className="py-3.5 px-4 font-semibold text-[#264020]">
-                      ₹{item.price.toLocaleString('en-IN')}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {item.inStock ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3" /> In Stock
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-                          <XCircle className="w-3 h-3" /> Out of Stock
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={updatingId === item.id}
-                        onClick={() => toggleStock(item)}
-                        className={`text-xs h-8 ${
-                          item.inStock
-                            ? 'border-red-200 text-red-600 hover:bg-red-50'
-                            : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'
-                        }`}
-                      >
-                        {updatingId === item.id ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        ) : item.inStock ? (
-                          'Mark Out of Stock'
-                        ) : (
-                          'Mark In Stock'
-                        )}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <div className="bg-white rounded-2xl border border-[#264020]/10 shadow-sm overflow-hidden">
+          {loading ? (
+            <div className="py-12 text-center">
+              <RefreshCw className="w-6 h-6 text-[#264020]/30 animate-spin mx-auto mb-2" />
+              <p className="text-[#264020]/40 text-sm">Loading…</p>
+            </div>
+          ) : !stats?.recentOrders?.length ? (
+            <div className="py-12 text-center">
+              <ShoppingBag className="w-8 h-8 text-[#264020]/20 mx-auto mb-2" />
+              <p className="text-[#264020]/40 text-sm">No orders yet. They&apos;ll appear here when students purchase.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-[#264020]/5">
+              {stats.recentOrders.map((order) => (
+                <div key={order.id} className="px-5 py-4 flex items-center justify-between hover:bg-[#F7F9F6]/70 transition-colors">
+                  <div>
+                    <p className="font-medium text-[#264020] text-sm">{order.profiles?.name || 'Guest'}</p>
+                    <p className="text-xs text-[#264020]/50">{order.profiles?.email || '—'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-[#264020] text-sm">₹{(order.total || 0).toLocaleString()}</p>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-600'}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
