@@ -36,20 +36,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    refresh().finally(() => setLoading(false))
+    try {
+      refresh().catch(() => {}).finally(() => setLoading(false))
 
-    const supabase = createBrowserClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        refresh()
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null)
-        setProfile(null)
-        setLoading(false)
-      }
-    })
+      const supabase = createBrowserClient()
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          refresh().catch(() => {})
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+        }
+      })
 
-    return () => subscription.unsubscribe()
+      return () => data?.subscription?.unsubscribe()
+    } catch (err) {
+      console.warn('[AuthProvider] Auth listener setup failed:', err)
+      setLoading(false)
+    }
   }, [])
 
   return (

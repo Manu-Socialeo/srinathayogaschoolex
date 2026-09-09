@@ -29,14 +29,18 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
 export function PostHogPageView() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
 
   useEffect(() => {
-    if (pathname) {
-      let url = window.origin + pathname
+    if (!posthogKey) return
+    if (pathname && typeof window !== 'undefined') {
+      let url = window.location.origin + pathname
       if (searchParams?.toString()) url += '?' + searchParams.toString()
-      posthog.capture('$pageview', { $current_url: url })
+      try {
+        posthog.capture('$pageview', { $current_url: url })
+      } catch {}
     }
-  }, [pathname, searchParams])
+  }, [pathname, searchParams, posthogKey])
 
   return null
 }
