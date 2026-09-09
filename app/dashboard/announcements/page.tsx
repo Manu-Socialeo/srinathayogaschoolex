@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Megaphone, Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Megaphone, Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface Announcement {
@@ -13,32 +13,30 @@ interface Announcement {
   published: boolean
 }
 
-// Client-only local state (since no Supabase `announcements` table exists yet)
-const SEED: Announcement[] = [
-  {
-    id: '1',
-    title: 'New 200-Hour TTC Batch Starting October 2026',
-    description: 'We are excited to announce our next intensive Teacher Training Program. Early bird discounts available for registrations before September 30.',
-    date: '2026-09-01',
-    published: true,
-  },
-  {
-    id: '2',
-    title: 'School Closed for Navratri – October 2–11',
-    description: 'The school and all online classes will be on a break during Navratri. Regular classes resume on October 12.',
-    date: '2026-09-20',
-    published: true,
-  },
-]
-
 const defaultForm = { title: '', description: '', image: '', date: '', published: true }
 
 export default function AdminAnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>(SEED)
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(defaultForm)
   const [formError, setFormError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [toggling, setToggling] = useState<string | null>(null)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/announcements')
+      const json = await res.json()
+      setAnnouncements(json.data || [])
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }
+
+  useEffect(() => { load() }, [])
 
   const openAdd = () => {
     setEditingId(null)
@@ -54,24 +52,48 @@ export default function AdminAnnouncementsPage() {
     setIsModalOpen(true)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title || !form.date) { setFormError('Title and date are required.'); return }
-    if (editingId) {
-      setAnnouncements(prev => prev.map(a => a.id === editingId ? { ...a, ...form } : a))
-    } else {
-      setAnnouncements(prev => [{ id: Date.now().toString(), ...form }, ...prev])
-    }
-    setIsModalOpen(false)
+    setSubmitting(true)
+    setFormError('')
+    try {
+      const payload = { ...form, ...(editingId ? { id: editingId } : {}) }
+      const res = await fetch('/api/admin/announcements', {
+        method: editingId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) { const err = await res.json(); setFormError(err.error || 'Failed'); return }
+      await load()
+      setIsModalOpen(false)
+    } catch { setFormError('Something went wrong.') }
+    finally { setSubmitting(false) }
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Delete this announcement?')) return
-    setAnnouncements(prev => prev.filter(a => a.id !== id))
+    setDeleting(id)
+    try {
+      await fetch(`/api/admin/announcements?id=${id}`, { method: 'DELETE' })
+      setAnnouncements(prev => prev.filter(a => a.id !== id))
+    } catch (e) { console.error(e) }
+    finally { setDeleting(null) }
   }
 
-  const togglePublish = (id: string) => {
-    setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, published: !a.published } : a))
+  const togglePublish = async (ann: Announcement) => {
+    setToggling(ann.id)
+    try {
+      const res = await fetch('/api/admin/announcements', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: ann.id, published: !ann.published }),
+      })
+      if (res.ok) {
+        setAnnouncements(prev => prev.map(a => a.id === ann.id ? { ...a, published: !a.published } : a))
+      }
+    } catch (e) { console.error(e) }
+    finally { setToggling(null) }
   }
 
   return (
@@ -81,47 +103,59 @@ export default function AdminAnnouncementsPage() {
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#264020]">Announcements</h1>
           <p className="text-[#264020]/60 text-sm mt-1">{announcements.length} announcements · {announcements.filter(a => a.published).length} published</p>
         </div>
-        <Button onClick={openAdd} className="bg-[#264020] hover:bg-[#1a2c15] text-white gap-2">
-          <Plus className="w-4 h-4" /> New Announcement
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={load} variant="outline" className="border-[#264020]/20 text-[#264020] hover:bg-[#264020]/5 gap-2">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button onClick={openAdd} className="bg-[#264020] hover:bg-[#1a2c15] text-white gap-2">
+            <Plus className="w-4 h-4" /> New Announcement
+          </Button>
+        </div>
       </div>
 
-      <div className="space-y-3">
-        {announcements.map((ann) => (
-          <div key={ann.id} className={`bg-white rounded-2xl border shadow-sm p-5 flex gap-4 transition-all ${ann.published ? 'border-[#264020]/10' : 'border-dashed border-[#264020]/20 opacity-70'}`}>
-            <div className="w-10 h-10 rounded-xl bg-[#264020]/8 flex items-center justify-center flex-shrink-0">
-              <Megaphone className="w-5 h-5 text-[#264020]/60" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <p className="font-semibold text-[#264020]">{ann.title}</p>
-                <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={() => togglePublish(ann.id)}>
-                    {ann.published
-                      ? <ToggleRight className="w-7 h-7 text-emerald-500" />
-                      : <ToggleLeft className="w-7 h-7 text-[#264020]/25" />}
-                  </button>
-                  <button onClick={() => openEdit(ann)} className="p-1.5 text-[#264020]/50 hover:text-[#264020] hover:bg-[#264020]/8 rounded-lg">
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => handleDelete(ann.id)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+      {loading ? (
+        <div className="py-16 text-center">
+          <RefreshCw className="w-8 h-8 text-[#264020]/30 animate-spin mx-auto mb-3" />
+          <p className="text-[#264020]/50 text-sm">Loading…</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {announcements.map((ann) => (
+            <div key={ann.id} className={`bg-white rounded-2xl border shadow-sm p-5 flex gap-4 transition-all ${ann.published ? 'border-[#264020]/10' : 'border-dashed border-[#264020]/20 opacity-70'}`}>
+              <div className="w-10 h-10 rounded-xl bg-[#264020]/8 flex items-center justify-center flex-shrink-0">
+                <Megaphone className="w-5 h-5 text-[#264020]/60" />
               </div>
-              <p className="text-sm text-[#264020]/60 mt-1 line-clamp-2">{ann.description}</p>
-              <p className="text-xs text-[#264020]/40 mt-2">{ann.date}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-semibold text-[#264020]">{ann.title}</p>
+                  <div className="flex gap-2 flex-shrink-0 items-center">
+                    <button onClick={() => togglePublish(ann)} disabled={toggling === ann.id} className="disabled:opacity-50">
+                      {ann.published
+                        ? <ToggleRight className="w-7 h-7 text-emerald-500" />
+                        : <ToggleLeft className="w-7 h-7 text-[#264020]/25" />}
+                    </button>
+                    <button onClick={() => openEdit(ann)} className="p-1.5 text-[#264020]/50 hover:text-[#264020] hover:bg-[#264020]/8 rounded-lg">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDelete(ann.id)} disabled={deleting === ann.id} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm text-[#264020]/60 mt-1 line-clamp-2">{ann.description}</p>
+                <p className="text-xs text-[#264020]/40 mt-2">{ann.date}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {announcements.length === 0 && (
-          <div className="py-16 text-center bg-white rounded-2xl border border-[#264020]/10">
-            <Megaphone className="w-10 h-10 text-[#264020]/20 mx-auto mb-3" />
-            <p className="text-[#264020]/50 text-sm">No announcements yet.</p>
-          </div>
-        )}
-      </div>
+          {announcements.length === 0 && (
+            <div className="py-16 text-center bg-white rounded-2xl border border-[#264020]/10">
+              <Megaphone className="w-10 h-10 text-[#264020]/20 mx-auto mb-3" />
+              <p className="text-[#264020]/50 text-sm">No announcements yet. Add your first one.</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 bg-black/50">
@@ -155,8 +189,8 @@ export default function AdminAnnouncementsPage() {
               </div>
               <div className="flex gap-3 pt-2">
                 <Button type="button" onClick={() => setIsModalOpen(false)} variant="outline" className="flex-1 border-[#264020]/20 text-[#264020]">Cancel</Button>
-                <Button type="submit" className="flex-1 bg-[#264020] hover:bg-[#1a2c15] text-white">
-                  {editingId ? 'Update' : 'Publish'}
+                <Button type="submit" disabled={submitting} className="flex-1 bg-[#264020] hover:bg-[#1a2c15] text-white">
+                  {submitting ? 'Saving…' : editingId ? 'Update' : 'Publish'}
                 </Button>
               </div>
             </form>

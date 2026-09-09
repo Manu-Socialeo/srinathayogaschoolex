@@ -438,3 +438,90 @@ CREATE INDEX IF NOT EXISTS idx_saved_items_user ON saved_items(user_id);
 CREATE INDEX IF NOT EXISTS idx_workshop_registrations_user ON workshop_registrations(user_id);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_courses_category ON courses(category_id);
+
+-- ============================================================
+-- MIGRATION 001: Teachers, Announcements, Banners tables
+-- Run this in Supabase Studio > SQL Editor if not already applied
+-- ============================================================
+
+-- Teachers table
+CREATE TABLE IF NOT EXISTS teachers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT '',
+  specialization TEXT NOT NULL DEFAULT '',
+  bio TEXT DEFAULT '',
+  image TEXT DEFAULT '/teachers/Dr.Srinatha.webp',
+  sort_order INT NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE teachers ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Teachers viewable by all" ON teachers;
+CREATE POLICY "Teachers viewable by all" ON teachers FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Teachers manageable by admins" ON teachers;
+CREATE POLICY "Teachers manageable by admins" ON teachers FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- Announcements table
+CREATE TABLE IF NOT EXISTS announcements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  image TEXT DEFAULT '',
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  published BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Announcements viewable by all" ON announcements;
+CREATE POLICY "Announcements viewable by all" ON announcements FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Announcements manageable by admins" ON announcements;
+CREATE POLICY "Announcements manageable by admins" ON announcements FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- Banners table
+CREATE TABLE IF NOT EXISTS banners (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  subtitle TEXT DEFAULT '',
+  image TEXT NOT NULL DEFAULT '',
+  cta_label TEXT DEFAULT '',
+  cta_link TEXT DEFAULT '',
+  sort_order INT NOT NULL DEFAULT 1,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE banners ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Banners viewable by all" ON banners;
+CREATE POLICY "Banners viewable by all" ON banners FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Banners manageable by admins" ON banners;
+CREATE POLICY "Banners manageable by admins" ON banners FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- Seed teachers
+INSERT INTO teachers (name, role, specialization, bio, image, sort_order, active) VALUES
+  ('Dr. Srinatha', 'Founder & Director', 'Hatha Yoga, Iyengar Yoga, Ashtanga Yoga', 'Founder of Srinatha Yoga School with 25+ years of teaching experience.', '/teachers/Dr.Srinatha.webp', 1, true),
+  ('Ravi Prabhakar', 'Methodology & Anatomy', 'Anatomy, Physiology, Teaching Methodology', 'Expert in anatomy and physiology for yoga teachers.', '/teachers/ravi.webp', 2, true),
+  ('Vinayaka Honnavar', 'Philosophy & Sound Healing', 'Yoga Philosophy, Meditation, Sound Healing', 'Specialist in yoga philosophy, meditation and sound healing.', '/teachers/vinayak.webp', 3, true),
+  ('Sahana P R', 'Yin Yoga & Prenatal', 'Yin Yoga, Prenatal & Postnatal, Anatomy', 'Certified in yin yoga, prenatal and postnatal practices.', '/teachers/Sahana.webp', 4, true),
+  ('Hrishanth', 'Yoga Therapy & Ashtanga', 'Yoga Therapy, Ashtanga Yoga', 'Expert in therapeutic applications of yoga.', '/teachers/hrishanth.webp', 5, true),
+  ('Minu Sajji', 'Pranayama & Chair Yoga', 'Pranayama, Wheel Yoga, Chair Yoga', 'Specialist in pranayama and adaptive yoga practices.', '/teachers/minu.webp', 6, true),
+  ('Charanya', 'Ayurveda & Philosophy', 'Ayurveda, Yoga Philosophy, Pranayama', 'Expert in Ayurveda and yoga philosophy integration.', '/teachers/charanya.webp', 7, true),
+  ('Anulasha Ram', 'Aerial Yoga & Marketing', 'Aerial Yoga, Community Outreach', 'Certified aerial yoga instructor and community builder.', '/teachers/Anu.webp', 8, true)
+ON CONFLICT DO NOTHING;
+
+-- Seed announcements
+INSERT INTO announcements (title, description, date, published) VALUES
+  ('New 200-Hour TTC Batch Starting October 2026', 'We are excited to announce our next intensive Teacher Training Program. Early bird discounts available for registrations before September 30.', '2026-09-01', true),
+  ('Weekend Workshops Now Available', 'Join our weekend yoga immersion workshops. Sessions available for all levels.', '2026-09-05', true)
+ON CONFLICT DO NOTHING;
+
+-- Seed banners
+INSERT INTO banners (title, subtitle, image, cta_label, cta_link, sort_order, active) VALUES
+  ('Transform Your Practice', 'Join India''s leading yoga teacher training', 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80', 'Explore Courses', '/courses', 1, true),
+  ('Weekend Workshops', 'Immersive yoga sessions every weekend', 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80', 'View Workshops', '/workshops', 2, true)
+ON CONFLICT DO NOTHING;
