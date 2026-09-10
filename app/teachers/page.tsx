@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -120,7 +121,28 @@ const coreValues = [
   },
 ]
 
+const COLOR_PALETTE = ["#264020", "#7BA3A8", "#8B9D83", "#9DB4C0", "#A89F91", "#B5838D", "#C4A484", "#8B8B6B"]
+
 export default function TeachersPage() {
+  const [teachers, setTeachers] = useState(teamMembers)
+
+  useEffect(() => {
+    fetch('/api/admin/teachers')
+      .then(res => res.json())
+      .then(json => {
+        if (json.data && json.data.length > 0) {
+          const mapped = json.data.map((t: { name: string; role: string; image?: string; bgColor?: string }, idx: number) => ({
+            name: t.name,
+            role: t.role,
+            image: t.image || "/teachers/Dr.Srinatha.webp",
+            bgColor: t.bgColor || COLOR_PALETTE[idx % COLOR_PALETTE.length],
+          }))
+          setTeachers(mapped)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -146,7 +168,7 @@ export default function TeachersPage() {
         <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4">
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-x-6 gap-y-16">
-              {teamMembers.map((member, index) => (
+              {teachers.map((member, index) => (
                 <div
                   key={member.name}
                   className="animate-fade-in-up flex flex-col items-center glass-card-hover rounded-2xl p-4 transition-all duration-300"

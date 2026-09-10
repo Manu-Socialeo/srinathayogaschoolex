@@ -59,11 +59,48 @@ const instagramPosts = [
 export default function HomePage() {
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [courses, setCourses] = useState<AppCourse[]>([])
+  const [dynamicEducators, setDynamicEducators] = useState(educators)
+  const [announcements, setAnnouncements] = useState<Array<{ id: string; title: string; description?: string }>>([])
+  const [banners, setBanners] = useState<Array<{ id: string; title: string; subtitle?: string; image: string; cta_label?: string; cta_link?: string }>>([])
 
   useEffect(() => {
     fetchCourses().then(all => {
       setCourses(all.filter(c => sadhanaTitles.includes(c.title)))
     }).catch(() => {})
+
+    // Dynamic teachers from CMS
+    fetch('/api/admin/teachers')
+      .then(r => r.json())
+      .then(json => {
+        if (json.data && json.data.length > 0) {
+          const bgColors = ["#264020", "#7BA3A8", "#C4A484", "#8B8B6B", "#9DB4C0", "#A89F91", "#B5838D"]
+          const mapped = json.data.slice(0, 4).map((t: { name: string; role: string; image?: string }, idx: number) => ({
+            name: t.name,
+            role: t.role,
+            image: t.image || "/teachers/Dr.Srinatha.webp",
+            bgColor: bgColors[idx % bgColors.length],
+          }))
+          setDynamicEducators(mapped)
+        }
+      })
+      .catch(() => {})
+
+    // Dynamic announcements
+    fetch('/api/admin/announcements')
+      .then(r => r.json())
+      .then(json => {
+        if (json.data) setAnnouncements(json.data.filter((a: { published: boolean }) => a.published))
+      })
+      .catch(() => {})
+
+    // Dynamic banners
+    fetch('/api/admin/banners')
+      .then(r => r.json())
+      .then(json => {
+        if (json.data) setBanners(json.data.filter((b: { active: boolean }) => b.active))
+      })
+      .catch(() => {})
+
     const handleScroll = () => setShowScrollTop(window.scrollY > 500)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
@@ -76,8 +113,19 @@ export default function HomePage() {
       <Header />
 
       <main>
+        {/* Active Announcement Bar */}
+        {announcements.length > 0 && (
+          <div className="bg-[#264020] text-white py-2.5 px-4 text-center text-xs sm:text-sm font-medium flex items-center justify-center gap-2 relative z-20 mt-16 sm:mt-20">
+            <span className="bg-[#FAF8F5]/20 text-[#FAF8F5] text-[10px] sm:text-xs uppercase px-2 py-0.5 rounded-full font-semibold">Announcement</span>
+            <span className="font-semibold">{announcements[0].title}</span>
+            {announcements[0].description && (
+              <span className="hidden md:inline text-white/80"> — {announcements[0].description}</span>
+            )}
+          </div>
+        )}
+
         {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center bg-[#FAF8F5] pt-20">
+        <section className={`relative min-h-screen flex items-center justify-center bg-[#FAF8F5] ${announcements.length > 0 ? 'pt-8' : 'pt-20'}`}>
           <div className="absolute inset-0 overflow-hidden">
             <Image
               src="https://images.unsplash.com/photo-1545205597-3d9d02c29547?w=1920&h=1080&fit=crop"
@@ -259,6 +307,33 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Featured Banners from CMS */}
+        {banners.length > 0 && (
+          <section className="py-12 bg-white">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {banners.map((banner) => (
+                  <div key={banner.id} className="relative rounded-2xl overflow-hidden shadow-sm h-60 flex flex-col justify-end p-6 text-white group">
+                    <Image src={banner.image} alt={banner.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+                    <div className="relative z-10">
+                      <h3 className="font-serif text-2xl font-bold mb-1">{banner.title}</h3>
+                      {banner.subtitle && <p className="text-white/80 text-sm mb-4">{banner.subtitle}</p>}
+                      {banner.cta_label && (
+                        <Link href={banner.cta_link || '/courses'}>
+                          <Button size="sm" className="bg-white text-[#264020] hover:bg-[#FAF8F5] font-semibold">
+                            {banner.cta_label}
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Instagram Section */}
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4">
@@ -306,7 +381,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-6">
-              {educators.map((educator, index) => (
+              {dynamicEducators.map((educator, index) => (
                 <div
                   key={educator.name}
                   className="animate-fade-in-up flex flex-col items-center w-40 md:w-48 glass-card rounded-2xl p-4 glass-card-hover transition-all duration-300 cursor-pointer"
